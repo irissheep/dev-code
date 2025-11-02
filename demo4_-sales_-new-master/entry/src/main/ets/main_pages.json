@@ -1,0 +1,12 @@
+{
+  "src": [
+    "pages/customer/index",
+    "pages/customer/components/home",
+    "pages/customer/components/editAvatar",
+    "pages/customer/components/editPwd",
+    "pages/customer/components/exchangeRecords",
+    "pages/customer/components/rechargeRecords",
+    "pages/customer/components/wallet",
+    "pages/customer/components/CartPage"
+  ]
+}

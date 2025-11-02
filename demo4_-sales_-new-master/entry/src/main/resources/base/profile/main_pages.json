@@ -1,0 +1,18 @@
+{
+  "src": [
+    "pages/login/login",
+    "pages/login/register",
+    "pages/login/facial",
+    "pages/common/index",
+    "pages/customer/editAvatar",
+    "pages/customer/wallet",
+    "pages/customer/rechargeRecords",
+    "pages/customer/editPwd",
+    "pages/customer/expendRecords",
+    "pages/merchant/goodsDetail",
+    "pages/merchant/deviceManage",
+    "pages/merchant/merchantMy",
+    "pages/merchant/merchantNotice",
+    "pages/merchant/abnormalHandling"
+  ]
+}
