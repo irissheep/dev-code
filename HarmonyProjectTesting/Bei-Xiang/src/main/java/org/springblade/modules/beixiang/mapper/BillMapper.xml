@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.springblade.modules.beixiang.mapper.BillMapper">
+
+    <resultMap id="BaseResultMap" type="org.springblade.modules.beixiang.entity.Bill">
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="billNo" column="bill_no" jdbcType="VARCHAR"/>
+        <result property="userId" column="user_id" jdbcType="BIGINT"/>
+        <result property="totalAmount" column="total_amount" jdbcType="DECIMAL"/>
+        <result property="totalNumber" column="total_number" jdbcType="INTEGER"/>
+        <result property="isDeleted" column="is_deleted" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="createUser" column="create_user" jdbcType="BIGINT"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="updateUser" column="update_user" jdbcType="BIGINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id
+        ,bill_no,user_id,
+        total_amount,total_number,is_deleted,
+        create_time,create_user,update_time,
+        update_user
+    </sql>
+    <select id="getPage" resultType="org.springblade.modules.beixiang.vo.BillVO">
+        select s.status,s.id, s.bill_no, s.user_id, s.total_amount, s.action , s.total_number, s.create_time, t.product_id as productId,
+        t.product_number from bx_bill s join bx_product_rel_bill t on s.id = t.bill_id
+        where
+        t.product_id in(select id from bx_product
+
+        <where>
+            <if test="keyword!=null and keyword!=''">
+                name like concat('%', #{keyword}, '%')
+            </if>
+        </where>
+        ) and (s.user_id = #{userId} or s.merchant_id = #{userId})
+        <if test="keyword!=null and keyword!=''">
+            or s.bill_no like concat('%',#{keyword},'%')
+        </if>
+
+        order by s.create_time desc
+    </select>
+    <select id="purchaseBehavior" resultType="org.springblade.modules.beixiang.vo.PurchaseBehaviorVO">
+        select p.name,sum(if( status = 1 , total_number,0 ) ) successCount,sum(if( status = 2 , total_number,0) )
+        cancelCount
+        from bx_product p
+        join bx_product_rel_bill r on p.id = r.product_id
+        join bx_bill b on r.bill_id = b.id
+        where p.is_deleted = 0 and b.status in (1,2)
+        <if test="dto.startTime!=null">
+            <if test="dto.endTime!=null">
+                and date_format(b.create_time,'%Y-%m-%d') between date_format(#{dto.startTime},'%Y-%m-%d') and
+                date_format(#{dto.endTime},'%Y-%m-%d')
+            </if>
+        </if>
+        group by p.name
+    </select>
+    <select id="getBillIdByproductId" resultType="org.springblade.modules.beixiang.entity.Bill">
+        select b.* from
+                     bx_product_rel_bill p
+                         join bx_bill b
+                             on b.id = b.bill_id
+            where p.product_id =#{productId} and b.user_id  = #{userId} and b.action = 2
+            order by b.create_time desc limit 1;
+
+    </select>
+</mapper>

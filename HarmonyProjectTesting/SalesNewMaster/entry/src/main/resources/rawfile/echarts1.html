@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8"/>
+    <title>ECharts</title>
+</head>
+
+<body>
+<div id="main" style="width: 100%;height:800px;"></div>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+<script type="text/javascript">
+    // 基于准备好的dom，初始化echarts实例
+    var myChart = echarts.init(document.getElementById('main'));
+
+    // 指定图表的配置项和数据
+    var option = {
+      legend: {
+        show: true,
+        data: []
+      },
+      tooltip: {},
+      xAxis: {
+        data: []
+      },
+      yAxis: {},
+      series: []
+    };
+
+
+    var h5Port;
+    window.addEventListener('message', function (event) {
+      if (event.data == 'init_web_messageport') {
+        if (event.ports[0] != null) {
+          h5Port = event.ports[0]; // 1. 保存从ets侧发送过来的端口
+          h5Port.onmessage = function (event) {
+            // 2. 接收ets侧发送过来的消息.
+            var result = event.data;
+            if (typeof (result) == "string") {
+              console.log("In html got message, String: ", result);
+
+                // 使用函数
+             const dpi =JSON.parse(result).dpi || 160
+                 const px = 250 * (dpi / 160)
+                document.getElementById('main').style.height = `${px}px`
+              option.legend.data = JSON.parse(result).legend || []
+              option.xAxis.data = JSON.parse(result).xAxis || []
+              option.series = JSON.parse(result).series || []
+              option.legend.show = JSON.parse(result).showLegend || true
+              // 使用刚指定的配置项和数据显示图表。
+              myChart.setOption(option);
+            }
+          }
+          h5Port.onmessageerror = (event) => {
+            console.error(`hwd In html Error receiving message: ${event}`);
+          };
+        }
+      }
+    })
+
+
+
+</script>
+</body>
+
+</html>

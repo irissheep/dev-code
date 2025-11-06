@@ -1,0 +1,4 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Wed Mar 12 14:15:03 CST 2025
+aws-java-sdk-core-1.12.253.jar>aliyun-repos=
+aws-java-sdk-core-1.12.253.pom>aliyun-repos=

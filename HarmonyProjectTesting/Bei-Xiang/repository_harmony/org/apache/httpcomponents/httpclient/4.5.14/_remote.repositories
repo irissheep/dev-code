@@ -1,0 +1,5 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Wed Mar 12 14:19:34 CST 2025
+httpclient-4.5.14.jar>aliyun-repos=
+httpclient-4.5.14.pom>aliyun-repos=
+httpclient-4.5.14.jar>aliyun-plugin=

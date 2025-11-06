@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<flow>
+    <chain name="smsChain">
+        THEN(
+            preSmsRule,
+            SWITCH(smsBuildRule).TO(
+                aliSmsRule,
+                qiniuSmsRule,
+                tencentSmsRule,
+                yunpianSmsRule,
+                cacheSmsRule
+            ),
+            finallySmsRule
+        );
+    </chain>
+</flow>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.springblade.modules.beixiang.mapper.DeviceMapper">
+
+    <resultMap id="BaseResultMap" type="org.springblade.modules.beixiang.entity.Device">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="name" column="name" jdbcType="VARCHAR"/>
+            <result property="category" column="category" jdbcType="VARCHAR"/>
+            <result property="deviceNo" column="device_no" jdbcType="VARCHAR"/>
+            <result property="recentReporrtTime" column="recent_reporrt_time" jdbcType="TIMESTAMP"/>
+            <result property="status" column="status" jdbcType="INTEGER"/>
+            <result property="isDeleted" column="is_deleted" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,name,category,
+        device_no,recent_reporrt_time,status,
+        is_deleted
+    </sql>
+</mapper>

@@ -1,0 +1,5 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Wed Mar 12 14:19:34 CST 2025
+jsr305-3.0.2.pom>aliyun-repos=
+jsr305-3.0.2.jar>aliyun-plugin=
+jsr305-3.0.2.jar>aliyun-repos=

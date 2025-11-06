@@ -1,0 +1,4 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Wed Mar 12 14:15:03 CST 2025
+org.jacoco.agent-0.8.7-runtime.jar>aliyun-repos=
+org.jacoco.agent-0.8.7.pom>aliyun-repos=

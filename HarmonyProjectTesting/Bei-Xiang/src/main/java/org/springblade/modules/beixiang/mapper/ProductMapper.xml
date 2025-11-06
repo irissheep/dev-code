@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.springblade.modules.beixiang.mapper.ProductMapper">
+
+    <resultMap id="BaseResultMap" type="org.springblade.modules.beixiang.entity.Product">
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="deviceId" column="device_id" jdbcType="BIGINT"/>
+        <result property="price" column="price" jdbcType="DECIMAL"/>
+        <result property="thresholdValue" column="threshold_value" jdbcType="INTEGER"/>
+        <result property="weight" column="weight" jdbcType="DECIMAL"/>
+        <result property="pictureUrl" column="picture_url" jdbcType="VARCHAR"/>
+        <result property="number" column="number" jdbcType="INTEGER"/>
+        <result property="isDeleted" column="is_deleted" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="createUser" column="create_user" jdbcType="BIGINT"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="updateUser" column="update_user" jdbcType="BIGINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id
+        ,name,device_id,
+        price,threshold_value,weight,
+        picture_url,number,is_deleted,
+        status,create_time,create_user,
+        update_time,update_user
+    </sql>
+    <select id="getProductByPage" resultType="org.springblade.modules.beixiang.vo.ProductVO">
+        select
+        s.id,s.name,
+        s.price,s.threshold_value,s.weight,
+        s.picture_url,s.number,
+        s.create_time,
+        t.name as shelf,
+        s.device_id,
+        t.cell
+        from bx_product s left join bx_device t on s.device_id = t.id where s.is_deleted = 0
+        <if test="dto.keyword !=null and dto.keyword!=''">
+            and (s.name like concat('%', #{dto.keyword},'%' )
+            or t.name like concat('%', #{dto.keyword},'%' ))
+        </if>
+    </select>
+    <select id="getInventory" resultType="org.springblade.modules.beixiang.vo.InventoryVO">
+        select s.name, s.number, t.name as shelf
+        from bx_product s
+                 left join bx_device t on s.device_id = t.id
+        where s.is_deleted = 0
+          and t.is_deleted = 0
+
+    </select>
+    <select id="SaleRank" resultType="org.springblade.modules.beixiang.vo.SaleRankVO">
+        select max(p.price) price, p.name, sum(r.product_number) number
+        from bx_product p
+                 join bx_product_rel_bill r on p.id = r.product_id
+        group by p.name
+        order by number ${condition}
+        limit 3
+    </select>
+
+</mapper>

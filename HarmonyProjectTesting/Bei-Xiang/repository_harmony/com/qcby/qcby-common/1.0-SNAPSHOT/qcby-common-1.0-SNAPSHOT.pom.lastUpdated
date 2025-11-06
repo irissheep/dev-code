@@ -1,0 +1,10 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Wed Nov 05 11:06:30 CST 2025
+file\:///D\:\\TEST\\HarmonyProjectTesting\\Bei-Xiang/repository_harmony/.error=
+https\://maven.aliyun.com/repository/springblade/.error=Could not transfer artifact com.qcby\:qcby-common\:pom\:1.0-SNAPSHOT from/to aliyun-springblade (https\://maven.aliyun.com/repository/springblade)\: status code\: 401, reason phrase\: Unauthorized (401)
+@default-aliyun-springblade-https\://maven.aliyun.com/repository/springblade/.lastUpdated=1762311990247
+https\://center.javablade.com/api/packages/blade/maven/.error=Could not transfer artifact com.qcby\:qcby-common\:pom\:1.0-SNAPSHOT from/to bladex (https\://center.javablade.com/api/packages/blade/maven)\: status code\: 401, reason phrase\: Unauthorized (401)
+https\://gitee.com/springblade/maven-repository/raw/master/.lastUpdated=1762311990406
+file\:///D\:\\TEST\\HarmonyProjectTesting\\Bei-Xiang/repository_harmony/.lastUpdated=1762311990087
+@default-bladex-https\://center.javablade.com/api/packages/blade/maven/.lastUpdated=1762311990122
+https\://gitee.com/springblade/maven-repository/raw/master/.error=

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<flow>
+    <chain name="ossChain">
+        THEN(
+            preOssRule,
+            SWITCH(ossCacheRule).TO(
+                ossReadRule,
+                THEN(
+                    ossDataRule,
+                    SWITCH(ossBuildRule).TO(
+                        aliOssRule,
+                        amazonS3Rule,
+                        huaweiObsRule,
+                        minioRule,
+                        qiniuOssRule,
+                        tencentCosRule
+                    ),
+                    ossTemplateRule
+                ).id("ossNewRule")
+            ),
+            finallyOssRule
+        );
+    </chain>
+</flow>

@@ -1,0 +1,8 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Wed Mar 12 14:08:09 CST 2025
+https\://repo.maven.apache.org/maven2/.lastUpdated=1741759689811
+https\://maven.aliyun.com/repository/public/.lastUpdated=1741759689450
+https\://repo.maven.apache.org/maven2/.error=
+https\://center.javablade.com/api/packages/blade/maven/.error=Could not transfer artifact com.aliyun.oss\:aliyun-sdk-oss\:pom\:unknown from/to bladex (https\://center.javablade.com/api/packages/blade/maven)\: status code\: 401, reason phrase\: Unauthorized (401)
+https\://maven.aliyun.com/repository/public/.error=
+@default-bladex-https\://center.javablade.com/api/packages/blade/maven/.lastUpdated=1741759689504

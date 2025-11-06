@@ -1,0 +1,44 @@
+#数据源配置
+spring:
+  redis:
+    ##redis 单机环境配置
+    host: 42.193.243.96
+#    host: 127.0.0.1
+    port: 6379
+    password: tb@730*#$
+    database: 0
+    ssl: false
+    ##redis 集群环境配置
+    #cluster:
+    #  nodes: 127.0.0.1:7001,127.0.0.1:7002,127.0.0.1:7003
+    #  commandTimeout: 5000
+  datasource:
+    # MySql 119.29.77.218
+#    42.193.243.96:13306/bladex  localhost:3306/hos
+
+    url: jdbc:mysql://42.193.243.96:13306/bladex?useSSL=false&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&serverTimezone=GMT%2B8&nullCatalogMeansCurrent=true&allowPublicKeyRetrieval=true&lowerCaseTableNames=1
+    username: proj4user
+    password: fWQ#WcxmpX
+#    url: jdbc:mysql://localhost:3306/hos?useSSL=false&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&serverTimezone=GMT%2B8&nullCatalogMeansCurrent=true&allowPublicKeyRetrieval=true&lowerCaseTableNames=1
+#    username: root
+#    password: 123456
+
+#第三方登陆
+social:
+  enabled: true
+  domain: http://127.0.0.1:1888
+
+#blade配置
+blade:
+  #分布式锁配置
+  lock:
+    ##是否启用分布式锁
+    enabled: false
+    ##redis服务地址
+    address: redis://42.193.243.96:6379
+  #本地文件上传
+  file:
+    remote-mode: true
+    upload-domain: http://localhost:8999
+    remote-path: /usr/share/nginx/html
+

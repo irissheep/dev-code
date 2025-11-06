@@ -1,0 +1,41 @@
+{
+  "app": {
+//    "signingConfigs": [
+//      {
+//        "name": "default",
+//        "type": "HarmonyOS",
+//        "material": {
+//          "certpath": "C:\\Users\\海跃智讯\\.ohos\\config\\auto_debug_task4_com.example.myapplication_150086000130545293.cer",
+//          "storePassword": "0000001A34EE2C9391B0726EE9A3D92836606B3CF49AA9AF01A3426D0B3CB198DD103628427EADCF0990",
+//          "keyAlias": "debugKey",
+//          "keyPassword": "0000001ADE63B41C2554C97233BBE4875C28ECCBD9DB962B23C152080CB7152758E319C14B59018A4212",
+//          "profile": "C:\\Users\\海跃智讯\\.ohos\\config\\auto_debug_task4_com.example.myapplication_150086000130545293.p7b",
+//          "signAlg": "SHA256withECDSA",
+//          "storeFile": "C:\\Users\\海跃智讯\\.ohos\\config\\auto_debug_task4_com.example.myapplication_150086000130545293.p12"
+//        }
+//      }
+//    ],
+    "compileSdkVersion": 9,
+    "compatibleSdkVersion": 9,
+    "products": [
+      {
+        "name": "default",
+        "signingConfig": "default",
+      }
+    ]
+  },
+  "modules": [
+    {
+      "name": "entry",
+      "srcPath": "./entry",
+      "targets": [
+        {
+          "name": "default",
+          "applyToProducts": [
+            "default"
+          ]
+        }
+      ]
+    }
+  ]
+}

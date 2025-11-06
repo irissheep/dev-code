@@ -1,0 +1,9 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Wed Mar 12 14:08:39 CST 2025
+https\://repo.maven.apache.org/maven2/.lastUpdated=1741759631440
+https\://maven.aliyun.com/repository/public/.lastUpdated=1741759630411
+https\://repo.maven.apache.org/maven2/.error=
+https\://center.javablade.com/api/packages/blade/maven/.error=Could not transfer artifact org.springblade.platform\:blade-bom\:pom\:3.3.1.RELEASE from/to bladex (https\://center.javablade.com/api/packages/blade/maven)\: status code\: 401, reason phrase\: Unauthorized (401)
+https\://maven.aliyun.com/repository/public/.error=
+@default-bladex-https\://center.javablade.com/api/packages/blade/maven/.lastUpdated=1741759683368
+https\://11346544\:haiyue2025***@center.javablade.com/api/packages/blade/maven/.lastUpdated=1741759719579

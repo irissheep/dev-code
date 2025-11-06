@@ -1,0 +1,425 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.beixiang</groupId>
+    <artifactId>bei-xiang</artifactId>
+    <packaging>jar</packaging>
+    <version>3.3.1.RELEASE</version>
+
+    <properties>
+        <bladex.project.id>bei-xiang</bladex.project.id>
+        <bladex.project.version>3.3.1.RELEASE</bladex.project.version>
+
+        <java.version>11</java.version>
+        <maven.plugin.version>3.8.1</maven.plugin.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <!-- Docker仓库服务配置 -->
+        <docker.registry.url>192.168.0.188</docker.registry.url>
+        <docker.username>admin</docker.username>
+        <docker.password>admin12345</docker.password>
+        <docker.namespace>blade</docker.namespace>
+        <docker.fabric.version>0.42.0</docker.fabric.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springblade.platform</groupId>
+                <artifactId>blade-bom</artifactId>
+                <version>${bladex.project.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <!-- Blade -->
+        <dependency>
+            <groupId>org.springblade</groupId>
+            <artifactId>blade-core-boot</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springblade</groupId>
+                    <artifactId>blade-core-cloud</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springblade</groupId>
+            <artifactId>blade-starter-http</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springblade</groupId>
+            <artifactId>blade-starter-api-crypto</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springblade</groupId>
+            <artifactId>blade-starter-datascope</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springblade</groupId>
+            <artifactId>blade-starter-tenant</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springblade</groupId>
+            <artifactId>blade-starter-sharding</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springblade</groupId>
+            <artifactId>blade-starter-develop</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springblade</groupId>
+            <artifactId>blade-starter-swagger</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springblade</groupId>
+            <artifactId>blade-starter-excel</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springblade</groupId>
+            <artifactId>blade-starter-social</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.xiaoymin</groupId>
+            <artifactId>knife4j-openapi2-ui</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springblade</groupId>
+            <artifactId>blade-core-auto</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springblade</groupId>
+            <artifactId>blade-core-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- 报表 -->
+        <dependency>
+            <groupId>org.springblade</groupId>
+            <artifactId>blade-starter-report</artifactId>
+        </dependency>
+        <!-- 工作流 -->
+        <dependency>
+            <groupId>org.springblade</groupId>
+            <artifactId>blade-starter-flowable</artifactId>
+        </dependency>
+        <!-- 验证码 -->
+        <dependency>
+            <groupId>com.github.whvcse</groupId>
+            <artifactId>easy-captcha</artifactId>
+        </dependency>
+        <!-- Mybatis-Plus -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-generator</artifactId>
+        </dependency>
+        <!--Oss-->
+        <dependency>
+            <groupId>org.springblade</groupId>
+            <artifactId>blade-starter-oss</artifactId>
+        </dependency>
+        <!--Sms-->
+        <dependency>
+            <groupId>org.springblade</groupId>
+            <artifactId>blade-starter-sms</artifactId>
+        </dependency>
+        <!--Aws S3-->
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-s3</artifactId>
+        </dependency>
+        <!--MinIO-->
+        <dependency>
+            <groupId>io.minio</groupId>
+            <artifactId>minio</artifactId>
+        </dependency>
+        <!--Alioss-->
+        <dependency>
+            <groupId>com.aliyun.oss</groupId>
+            <artifactId>aliyun-sdk-oss</artifactId>
+        </dependency>
+        <!--AliSms-->
+        <dependency>
+            <groupId>com.aliyun</groupId>
+            <artifactId>aliyun-java-sdk-core</artifactId>
+        </dependency>
+        <!--华为云Obs-->
+        <dependency>
+            <groupId>com.huaweicloud</groupId>
+            <artifactId>esdk-obs-java</artifactId>
+        </dependency>
+        <!--腾讯COS-->
+        <dependency>
+            <groupId>com.qcloud</groupId>
+            <artifactId>cos_api</artifactId>
+        </dependency>
+        <!--腾讯SMS-->
+        <dependency>
+            <groupId>com.github.qcloudsms</groupId>
+            <artifactId>qcloudsms</artifactId>
+        </dependency>
+        <!--QiNiu-->
+        <dependency>
+            <groupId>com.qiniu</groupId>
+            <artifactId>qiniu-java-sdk</artifactId>
+        </dependency>
+        <!--YunPian-->
+        <dependency>
+            <groupId>com.yunpian.sdk</groupId>
+            <artifactId>yunpian-java-sdk</artifactId>
+        </dependency>
+        <!-- liteflow -->
+        <dependency>
+            <groupId>org.springblade</groupId>
+            <artifactId>blade-starter-liteflow</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>6.0</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>5.8.15</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-websocket</artifactId>
+            <version>5.2.8.RELEASE</version>
+        </dependency>
+
+<!--        <dependency>-->
+<!--            <groupId>com.qcby</groupId>-->
+<!--            <artifactId>qcby-common</artifactId>-->
+<!--            <version>1.0-SNAPSHOT</version>-->
+<!--        </dependency>-->
+
+        <!-- Oracle -->
+        <!--<dependency>
+            <groupId>com.oracle</groupId>
+            <artifactId>ojdbc7</artifactId>
+        </dependency>-->
+        <!-- PostgreSql -->
+        <!--<dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+        </dependency>-->
+        <!-- SqlServer -->
+        <!--<dependency>
+            <groupId>com.microsoft.sqlserver</groupId>
+            <artifactId>mssql-jdbc</artifactId>
+        </dependency>-->
+        <!-- DaMeng -->
+        <!--<dependency>
+            <groupId>com.dameng</groupId>
+            <artifactId>DmJdbcDriver18</artifactId>
+        </dependency>-->
+        <!--YashanDB-->
+        <!--<dependency>
+            <groupId>com.yashandb.jdbc</groupId>
+            <artifactId>yasdb-jdbc</artifactId>
+        </dependency>-->
+        <!-- lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>${bladex.project.id}</finalName>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>src/main/java</directory>
+                <includes>
+                    <include>**/*.xml</include>
+                </includes>
+            </resource>
+        </resources>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>2.7.11</version>
+                    <configuration>
+                        <finalName>${project.build.finalName}</finalName>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>repackage</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>io.fabric8</groupId>
+                    <artifactId>docker-maven-plugin</artifactId>
+                    <version>${docker.fabric.version}</version>
+                    <configuration>
+                        <authConfig>
+                            <username>${docker.username}</username>
+                            <password>${docker.password}</password>
+                        </authConfig>
+                        <registry>${docker.registry.url}</registry>
+                        <images>
+                            <image>
+                                <name>${docker.namespace}/${project.build.finalName}:${project.version}</name>
+                                <alias>${project.name}</alias>
+                                <build>
+                                    <dockerFile>${project.basedir}/Dockerfile</dockerFile>
+                                </build>
+                            </image>
+                        </images>
+                        <buildArgs>
+                            <JAR_FILE>${basedir}/target/${project.build.finalName}.jar</JAR_FILE>
+                        </buildArgs>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.plugin.version}</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <encoding>UTF-8</encoding>
+                    <compilerArgs>
+                        <arg>-parameters</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <repositories>
+        <!-- 本地仓库（优先使用） -->
+        <repository>
+            <id>local-repository</id>
+            <name>Local Harmony Repository</name>
+            <url>file:///${project.basedir}/repository_harmony</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>aliyun-repos</id>
+            <name>Aliyun Public Repository</name>
+            <url>https://maven.aliyun.com/repository/public</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>bladex</id>
+            <name>BladeX Release Repository</name>
+            <url>https://center.javablade.com/api/packages/blade/maven</url>
+        </repository>
+        <!-- SpringBlade 仓库（备选 1）：阿里云 SpringBlade 代理 -->
+        <repository>
+            <id>aliyun-springblade</id>
+            <name>Aliyun SpringBlade Repository</name>
+            <url>https://maven.aliyun.com/repository/springblade</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <!-- SpringBlade 仓库（备选 2）：Gitee 原始仓库（raw） -->
+        <repository>
+            <id>gitee-springblade-raw</id>
+            <name>Gitee SpringBlade Raw Repository</name>
+            <url>https://gitee.com/springblade/maven-repository/raw/master</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <!-- 本地仓库（优先使用） -->
+        <pluginRepository>
+            <id>local-repository</id>
+            <name>Local Harmony Repository</name>
+            <url>file:///${project.basedir}/repository_harmony</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </pluginRepository>
+        <pluginRepository>
+            <id>aliyun-plugin</id>
+            <name>Aliyun Public Plugin</name>
+            <url>https://maven.aliyun.com/repository/public</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+        <!-- 与仓库保持一致，补充 SpringBlade 插件仓库（通常不需要，但保持一致性） -->
+        <pluginRepository>
+            <id>aliyun-springblade-plugin</id>
+            <name>Aliyun SpringBlade Plugin</name>
+            <url>https://maven.aliyun.com/repository/springblade</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </pluginRepository>
+        <pluginRepository>
+            <id>gitee-springblade-raw-plugin</id>
+            <name>Gitee SpringBlade Raw Plugin</name>
+            <url>https://gitee.com/springblade/maven-repository/raw/master</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <distributionManagement>
+        <repository>
+            <id>bladex</id>
+            <name>BladeX Release Repository</name>
+            <url>https://center.javablade.com/api/packages/blade/maven</url>
+        </repository>
+        <snapshotRepository>
+            <id>bladex</id>
+            <name>BladeX Snapshot Repository</name>
+            <url>https://center.javablade.com/api/packages/blade/maven</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+</project>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.springblade.modules.beixiang.mapper.ProductRelBillMapper">
+
+    <resultMap id="BaseResultMap" type="org.springblade.modules.beixiang.entity.ProductRelBill">
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="productId" column="product_id" jdbcType="BIGINT"/>
+        <result property="billId" column="bill_id" jdbcType="BIGINT"/>
+        <result property="productNumber" column="product_number" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id
+        ,product_id,bill_id,
+        product_number
+    </sql>
+    <select id="numberCount" resultType="org.springblade.modules.beixiang.vo.NumberCountVO">
+        select s.name,sum(t.product_number) number from bx_product s left join bx_product_rel_bill t on s.id = t.product_id
+        where s.is_deleted = 0
+        <if test="dto.startTime!=null">
+            <if test="dto.endTime!=null">
+            and date_format(t.create_time,'%Y-%m-%d') between date_format(#{dto.startTime},'%Y-%m-%d') and date_format(#{dto.endTime},'%Y-%m-%d')
+            </if>
+        </if>
+        group by s.name
+    </select>
+
+    <select id="saleTrend" resultType="org.springblade.modules.beixiang.vo.SaleTrendVO">
+        select date_format(t.create_time, '%Y-%m-%d') saleDate, sum(product_number) number
+        from bx_product s
+        join bx_product_rel_bill t
+        on t.product_id = s.id
+        <where>
+            <if test="name!=''and nane !=null">
+                s.name = #{name}
+            </if>
+        </where>
+        group by date_format(t.create_time,'%Y-%m-%d')
+    </select>
+</mapper>
