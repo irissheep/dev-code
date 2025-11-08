@@ -2,8 +2,13 @@ import http from '@ohos.net.http';
 import router from '@ohos.router';
 import promptAction from '@ohos.promptAction';
 
-//let BASE_URL = 'http://localhost:8000';
-let BASE_URL = 'http://42.193.243.96:9999'
+// 后端服务器地址配置
+// 优先使用AppStorage中配置的BASE_URL，如果没有则使用默认值
+// Android模拟器：使用 http://10.0.2.2:9999（当前默认值）
+// 本地浏览器调试：使用 http://localhost:9999
+// 真机调试：使用电脑IP地址，例如 http://192.168.1.100:9999
+// 远程服务器：使用 http://42.193.243.96:9999
+let BASE_URL = AppStorage.Get('BASE_URL') as string || 'http://10.0.2.2:9999'
 const TAG: string = '[HttpUtils]'
 
 
@@ -84,7 +89,12 @@ export default class HttpUtils {
   }
 
   sendRequest<T>(url: string): Promise<T> {
-    console.log('url', url)
+    // 每次请求前重新获取BASE_URL，支持动态切换
+    BASE_URL = AppStorage.Get('BASE_URL') as string || 'http://localhost:9999'
+    
+    console.log('[HttpUtils] 请求URL:', url)
+    console.log('[HttpUtils] 后端服务器:', BASE_URL)
+    
     let token: string | undefined = AppStorage.Get('token') || undefined
     this.setHeader({
       "Content-Type": 'application/json',
@@ -92,6 +102,7 @@ export default class HttpUtils {
     })
 
     let requestUrl = BASE_URL + url
+    console.log('[HttpUtils] 完整请求地址:', requestUrl)
     let httpRequest = http.createHttp();
     if (this.options.method == http.RequestMethod.GET) {
       if (this.options.extraData && Object.keys(this.options.extraData).length) {
@@ -108,8 +119,12 @@ export default class HttpUtils {
     return new Promise((resolve, reject) => {
       try {
         httpRequest.request(requestUrl, this.options).then((data) => {
-
+          console.log('[HttpUtils] 响应状态码:', data.responseCode)
+          console.log('[HttpUtils] 响应数据:', data.result)
+          
           const response = JSON.parse(`${data.result}`)
+          console.log('[HttpUtils] 解析后的响应:', JSON.stringify(response))
+          
           if (response.code == 400 && response.msg == '请登录') {
             promptAction.showToast({
               message: response.msg
@@ -127,7 +142,11 @@ export default class HttpUtils {
           }
           return resolve(response)
         }).catch((err: Error) => {
-          console.info('error:' + JSON.stringify(err));
+          console.error('[HttpUtils] 请求失败 - 服务器:', BASE_URL)
+          console.error('[HttpUtils] 请求失败 - URL:', requestUrl)
+          console.error('[HttpUtils] 错误详情:', JSON.stringify(err));
+          console.error('[HttpUtils] 错误消息:', err.message);
+          console.error('[HttpUtils] 错误堆栈:', err.stack);
           return reject(err)
         })
       } catch (err) {

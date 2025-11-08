@@ -157,28 +157,77 @@ public class BillServiceImpl extends ServiceImpl<BillMapper, Bill>
 		Bill bill = new Bill();
 		BeanUtil.copyProperties(dto, bill);
 		// 0为忽略 1 为处理 订单
-		if (dto.getHandle().equals("1")) {
-			Account account = Db.lambdaQuery(Account.class)
-				.eq(Account::getUserId, dto.getUserId())
-				.one();
-			if (account == null) {
-				return false;
+		if ("1".equals(dto.getHandle())) {
+			// 验证必要参数
+			if (dto.getUserId() == null) {
+				throw new RuntimeException("用户ID不能为空");
 			}
-			BigDecimal balance = account.getBalance();
+			if (dto.getAmount() == null) {
+				throw new RuntimeException("金额不能为空");
+			}
+			if (dto.getStatus() == null) {
+				throw new RuntimeException("订单状态不能为空");
+			}
+			
+			// 查询账户 - 确保userId类型正确
+			Long userId = dto.getUserId();
+			if (userId == null) {
+				throw new RuntimeException("用户ID无效");
+			}
+			
+			Account account = Db.lambdaQuery(Account.class)
+				.eq(Account::getUserId, userId)
+				.eq(Account::getIsDeleted, 0) // 确保账户未被删除
+				.one();
+			
+			if (account == null) {
+				throw new RuntimeException("未找到用户账户，用户ID: " + userId + "。请确认该用户是否已创建账户。");
+			}
+			
+			// 验证账户余额字段（使用try-catch捕获可能的NullPointerException）
+			BigDecimal balance = null;
+			try {
+				balance = account.getBalance();
+			} catch (NullPointerException e) {
+				throw new RuntimeException("账户对象异常，用户ID: " + userId + "，错误: " + e.getMessage());
+			}
+			
+			if (balance == null) {
+				throw new RuntimeException("账户余额信息不完整，用户ID: " + userId);
+			}
+			
 			BigDecimal amount = dto.getAmount();
+			if (amount == null) {
+				throw new RuntimeException("扣款金额不能为空");
+			}
+			
 			if (BillStatusEnum.ABNORMAL_FETCH.getCode().equals(dto.getStatus())) {
+				// 异常取走 - 扣款
+				if (balance.compareTo(amount) < 0) {
+					throw new RuntimeException("账户余额不足，当前余额: " + balance + ", 需要扣款: " + amount);
+				}
 				BigDecimal subBalance = balance.subtract(amount);
 				account.setBalance(subBalance);
-				Db.updateById(account);
-				accountService.sendConsumptionMsg(bill, false, subBalance, amount,null);
+				boolean updateResult = Db.updateById(account);
+				if (!updateResult) {
+					throw new RuntimeException("更新账户余额失败");
+				}
+				accountService.sendConsumptionMsg(bill, false, subBalance, amount, null);
 				bill.setStatus(BillStatusEnum.FINISH.getCode());
 			} else if (BillStatusEnum.ABNORMAL_FALLBACK.getCode().equals(dto.getStatus())) {
+				// 异常退回 - 退款
 				BigDecimal addBalance = balance.add(amount);
 				account.setBalance(addBalance);
-				Db.updateById(account);
-				accountService.sendConsumptionMsg(bill, true, addBalance, amount,null);
+				boolean updateResult = Db.updateById(account);
+				if (!updateResult) {
+					throw new RuntimeException("更新账户余额失败");
+				}
+				accountService.sendConsumptionMsg(bill, true, addBalance, amount, null);
 				bill.setStatus(BillStatusEnum.FINISH.getCode());
 			}
+		} else if ("0".equals(dto.getHandle())) {
+			// 忽略操作 - 只更新订单状态，不处理账户
+			// 可以在这里添加忽略后的状态更新逻辑，如果需要的话
 		}
 		return updateById(bill);
 	}

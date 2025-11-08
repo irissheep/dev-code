@@ -316,8 +316,9 @@ export  interface billDetailInfoType {
   amount?: number
   totalAmount?:string
   totalNumber?:number
+  userId?: string | number // 用户id
 }
 
 export interface  billDetailResType  extends responseType{
-  data:billDetailInfoType[]
+  data:billDetailInfoType
 }

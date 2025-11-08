@@ -1,10 +1,14 @@
 ## HarmonyProjectTesting 项目总览
 
-这是一个“后端 Java + 鸿蒙前端”的多项目仓库：
-- 后端位于 `Bei-Xiang/`，基于 Spring Boot + BladeX + MyBatis-Plus，集成 Swagger/Knife4j、Druid、Flowable、LiteFlow、OSS、短信等能力；默认端口 9999。
-- 前端位于 `SalesNewMaster/`，为 HarmonyOS 应用（ArkTS/ETS），通过 HTTP 调用后端接口。
+这是一个"后端 Java + 鸿蒙前端"的多项目仓库：
+- **后端**位于 `Bei-Xiang/`，基于 Spring Boot + BladeX + MyBatis-Plus，集成 Swagger/Knife4j、Druid、Flowable、LiteFlow、OSS、短信等能力；默认端口 9999。
+- **前端**位于 `SalesNewMaster/`，为 HarmonyOS 应用（ArkTS/ETS），通过 HTTP 调用后端接口。
 
 本文从结构、工作原理、运行流程到常见问题，帮助你快速理解与上手。
+
+---
+
+## 一、项目结构与情况
 
 ### 顶层目录结构
 - `Bei-Xiang/`: Java 后端服务
@@ -13,130 +17,412 @@
 - `README.md`: 本文档
 
 ### 后端服务（Bei-Xiang）
-后端是一个标准的 Spring Boot 单体服务，按“分层 + 领域模块”的模式组织。
 
-- 关键位置
-  - 启动入口：`org.springblade.Application`（运行即可启动服务）
-  - 配置文件：`src/main/resources/application*.yml`（端口、数据源、日志、Swagger、OSS、多租户等）
-  - 端口：默认 `9999`（`application.yml -> server.port`）
-  - 文档：`http://localhost:9999/doc.html`（Knife4j/Swagger）
-  - 数据源监控：`http://localhost:9999/druid/`（默认账密见配置文件）
+后端是一个标准的 Spring Boot 单体服务，按"分层 + 领域模块"的模式组织。
 
-- 主要目录
-  - `src/main/java/org/springblade/common`: 公共配置与基础能力（日志、拦截器、XSS、Swagger、WebSocket、报表等）
-  - `src/main/java/org/springblade/modules`: 业务域模块（`system`/`resource`/`develop`/`desk`/`auth`/`beixiang` 等）
-    - 每个模块通常包含 `controller` → `service` → `mapper`（MyBatis-Plus）以及 `entity`/`vo`/`dto`/`*.xml`
-  - `src/main/java/org/springblade/flow`: 流程相关（LiteFlow/Flowable 的节点、示例与封装）
-  - `src/main/resources/liteflow`: LiteFlow 的 `.el.xml` 流程定义
-  - `src/main/resources/processes`: Flowable 的 BPMN 流程定义
-  - `doc/script`: 运行脚本与 Docker/ELK 示例（`fatjar/service.cmd|sh`、`docker/elk/docker-compose.yml`）
-  - `doc/sql`: 多数据库初始化或升级 SQL（MySQL、Oracle、PG、SQLServer、达梦、亚信等）
+#### 关键位置
+- **启动入口**：`org.springblade.Application`（运行即可启动服务）
+- **配置文件**：`src/main/resources/application*.yml`
+  - `application.yml`: 基础配置（端口、数据源驱动等）
+  - `application-dev.yml`: **开发环境配置（当前使用远程数据库）**
+  - `application-test.yml`: 测试环境配置
+  - `application-prod.yml`: 生产环境配置
+- **端口**：默认 `9999`（`application.yml -> server.port`）
+- **API文档**：`http://localhost:9999/doc.html`（Knife4j/Swagger）
+- **数据源监控**：`http://localhost:9999/druid/`（默认账密见配置文件）
 
-- 请求处理链路（简化）
-  1) 客户端发起 HTTP 请求 → 2) 过滤器/拦截器（日志、XSS、安全、租户等） → 3) `controller`
-  → 4) `service` 进行业务编排（可触发 LiteFlow/Flowable 流程） → 5) `mapper` 访问数据库
-  → 6) 统一结果返回（异常和日志在公共层集中处理）。
+#### 主要目录
+- `src/main/java/org/springblade/common`: 公共配置与基础能力（日志、拦截器、XSS、Swagger、WebSocket、报表等）
+- `src/main/java/org/springblade/modules`: 业务域模块（`system`/`resource`/`develop`/`desk`/`auth`/`beixiang` 等）
+  - 每个模块通常包含 `controller` → `service` → `mapper`（MyBatis-Plus）以及 `entity`/`vo`/`dto`/`*.xml`
+- `src/main/java/org/springblade/flow`: 流程相关（LiteFlow/Flowable 的节点、示例与封装）
+- `src/main/resources/liteflow`: LiteFlow 的 `.el.xml` 流程定义
+- `src/main/resources/processes`: Flowable 的 BPMN 流程定义
 
-- 能力开关（常见）
-  - Swagger/Knife4j：`knife4j.enable: true`
-  - 流程引擎：`liteflow` 与 `flowable` 目录和配置
-  - 多租户/鉴权：`blade.secure`、`blade.tenant`
-  - 报文加密：`blade.api.crypto.*`
-  - 对象存储：`oss.*`（MinIO/S3/阿里云/华为/Tencent 等）
+#### 请求处理链路（简化）
+1) 客户端发起 HTTP 请求 → 2) 过滤器/拦截器（日志、XSS、安全、租户等） → 3) `controller`
+→ 4) `service` 进行业务编排（可触发 LiteFlow/Flowable 流程） → 5) `mapper` 访问数据库
+→ 6) 统一结果返回（异常和日志在公共层集中处理）。
 
 ### 前端应用（SalesNewMaster）
+
 HarmonyOS（ArkTS/ETS）项目，结构清晰，核心是通过封装的 HTTP 工具对接后端接口。
 
-- 关键位置
-  - 页面：`entry/src/main/ets/pages/*`（`login`/`customer`/`merchant`/`common` 等）
-  - API 封装：`entry/src/main/ets/api/*.ets`（集中与后端交互）
-  - HTTP 工具：`entry/src/main/ets/utils/HttpUtils.ets`，读取 `config.data.ets` 的后端基地址
-  - 实时通信（可选）：`entry/src/main/ets/model/socket.ts`
+#### 关键位置
+- **页面**：`entry/src/main/ets/pages/*`（`login`/`customer`/`merchant`/`common` 等）
+- **API 封装**：`entry/src/main/ets/api/*.ets`（集中与后端交互）
+- **HTTP 工具**：`entry/src/main/ets/utils/HttpUtils.ets`
+- **服务器地址配置**：`entry/src/main/ets/entryability/EntryAbility.ts`（应用启动时配置BASE_URL）
+- **实时通信（可选）**：`entry/src/main/ets/model/socket.ts`
 
-- 前后端交互
-  - 前端从 `config.data.ets` 取到后端地址 → 通过 `HttpUtils.ets` 发起 REST 请求 → 命中后端 `modules/*/controller`
-  → 服务调用 → 数据返回并渲染。
-
-### 运行与调试
-后端与前端可独立运行，建议先启动后端，再运行前端。
-
-1) 后端
-   - 准备：JDK 11、Maven（或 IDE 内置构建）
-   - 方式 A：IDE 运行 `org.springblade.Application.main`
-   - 方式 B：命令行（需配置 Maven）：
-     ```bash
-     cd Bei-Xiang
-     mvn -U clean package -DskipTests
-     java -jar target/bei-xiang.jar
-     ```
-   - 验证：
-     - API 文档 `http://localhost:9999/doc.html`
-     - Druid 监控 `http://localhost:9999/druid/`
-
-2) 前端（HarmonyOS）
-   - 使用 DevEco Studio 或命令行（`hvigorw(.bat)`）按官方流程运行 `SalesNewMaster`。
-   - 确认 `utils/config.data.ets` 指向后端地址（如 `http://localhost:9999`）。
-
-### 部署与运维（可选）
-- Fat-Jar：`doc/script/fatjar/service.cmd|sh` 快速启动/停止。
-- Docker：使用根目录 `Bei-Xiang/Dockerfile` 构建镜像；`doc/script/docker/elk/` 为 ELK 参考编排。
-- 配置分环境 `application-dev|test|prod.yml`，日志按环境在 `resources/log/`。
-
-### 常见问题（FAQ）
-- 无法识别 Maven：请安装并配置 `MAVEN_HOME` 与 `Path`，或在 IDE 内使用 Maven 面板构建。
-- 依赖缺失导致注解找不到：检查 `pom.xml` 的 Spring Boot/MyBatis-Plus 相关 starter 是否正确引入，并刷新依赖。
-- 页面无法访问接口：确认后端端口、跨域与 `config.data.ets` 的服务地址是否一致；查看后端日志与 `doc.html` 是否可打开。
-
-### 你可以从哪里开始
-- 想理解后端：从 `modules/system` 或自研的 `modules/beixiang` 入手，跟一条“Controller → Service → Mapper”的调用链。
-- 想理清流程编排：查看 `resources/liteflow/*.el.xml` 与 `flow` 包中的节点实现，或 `processes/*.bpmn20.xml` 与 Flowable 相关类。
-- 想验证接口：启动后打开 `doc.html`，在线调试所有 REST API。
+#### 前后端交互
+前端从 `EntryAbility.ts` 配置后端地址 → 通过 `HttpUtils.ets` 发起 REST 请求 → 命中后端 `modules/*/controller`
+→ 服务调用 → 数据返回并渲染。
 
 ---
-如需进一步按“具体业务模块”输出更细的调用图与表结构关系，请指出模块名称，我会继续补充到本文档中。
 
-### 模块深挖示例：`modules/beixiang`
+## 二、远程后端和本地后端切换
+
+### 当前配置状态
+
+**前端配置**（`SalesNewMaster/entry/src/main/ets/entryability/EntryAbility.ts`）：
+- **默认配置**：Android模拟器使用 `http://10.0.2.2:9999`
+- **可切换配置**：支持本地浏览器、真机调试、远程服务器
+
+**后端配置**：
+- **默认端口**：9999
+- **环境配置**：通过 `--spring.profiles.active=dev` 指定使用 `application-dev.yml`
+
+### 前端切换后端地址
+
+#### 配置位置
+编辑 `SalesNewMaster/entry/src/main/ets/entryability/EntryAbility.ts`，找到以下代码：
+
+```typescript
+if (!AppStorage.Get('BASE_URL')) {
+  // 当前配置：Android模拟器（10.0.2.2是Android模拟器访问宿主机的特殊IP）
+  AppStorage.SetOrCreate('BASE_URL', 'http://10.0.2.2:9999')
+  
+  // 如果需要使用其他配置，请注释掉上面这行，取消注释下面对应的配置：
+  // 本地浏览器调试：
+  // AppStorage.SetOrCreate('BASE_URL', 'http://localhost:9999')
+  // 真机调试（替换为你的电脑IP）：
+  // AppStorage.SetOrCreate('BASE_URL', 'http://192.168.1.100:9999')
+  // 远程服务器：
+  // AppStorage.SetOrCreate('BASE_URL', 'http://42.193.243.96:9999')
+}
+```
+
+#### 不同场景的配置
+
+| 场景 | BASE_URL配置 | 说明 |
+|------|-------------|------|
+| **Android模拟器** | `http://10.0.2.2:9999` | 当前默认配置，10.0.2.2是模拟器访问宿主机的特殊IP |
+| **本地浏览器调试** | `http://localhost:9999` | 直接在浏览器中调试 |
+| **真机调试** | `http://192.168.1.100:9999` | 需要替换为你的电脑实际IP地址（通过`ipconfig`获取） |
+| **远程服务器** | `http://42.193.243.96:9999` | 连接远程部署的后端服务 |
+
+#### 切换步骤
+
+1. **打开配置文件**
+   - `SalesNewMaster/entry/src/main/ets/entryability/EntryAbility.ts`
+
+2. **根据你的场景修改**
+   - 注释掉当前配置
+   - 取消注释对应的配置行
+   - 如果是真机调试，替换为你的电脑IP地址
+
+3. **重新运行应用**
+   - 重新编译并运行前端应用
+   - 查看控制台日志确认配置生效：
+     ```
+     已设置默认后端地址（Android模拟器）: http://10.0.2.2:9999
+     ```
+
+### 后端启动配置
+
+#### 使用IDE启动（推荐）
+
+1. **打开运行配置**
+   - 找到 `Application.java`（`src/main/java/org/springblade/Application.java`）
+   - 右键 → `Run` → `Edit Configurations...`
+
+2. **配置运行参数**
+   - 在 **"Program arguments"** 字段中添加：
+     ```
+     --spring.profiles.active=dev
+     ```
+   - ⚠️ **注意**：不要放在"有效配置文件"字段中，会导致日志配置错误
+
+3. **配置缩短命令行**（解决命令行过长错误）
+   - 找到 **"缩短命令行(L)"** (Shorten command line) 下拉菜单
+   - 选择：**`@argfile (Java 9+)`**
+
+4. **保存并运行**
+   - 点击 `Apply` → `OK`
+   - 运行应用
+
+#### 使用Maven命令启动
+
+```bash
+cd Bei-Xiang
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
+```
+
+#### 验证后端启动
+
+启动成功后，应该看到：
+```
+The following profiles are active: dev
+...
+Undertow started on port(s) 9999 (http)
+...
+Started Application in X.XXX seconds
+```
+
+测试后端是否可访问：
+- 浏览器访问：`http://localhost:9999/doc.html`
+- 如果能看到Swagger API文档页面，说明后端启动成功 ✅
+
+---
+
+## 三、远程数据库使用的注意事项
+
+### 当前数据库配置
+
+**配置文件**：`Bei-Xiang/src/main/resources/application-dev.yml`
+
+**远程数据库配置**（当前已启用）：
+```yaml
+spring:
+  datasource:
+    url: jdbc:mysql://42.193.243.96:13306/bladex?useSSL=false&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&serverTimezone=GMT%2B8&nullCatalogMeansCurrent=true&allowPublicKeyRetrieval=true&lowerCaseTableNames=1
+    username: proj4user
+    password: fWQ#WcxmpX
+```
+
+**Redis配置**：
+```yaml
+spring:
+  redis:
+    host: 42.193.243.96
+    port: 6379
+    password: tb@730*#$
+```
+
+### 使用远程数据库的注意事项
+
+#### ✅ 优点
+- **无需本地安装数据库**：直接使用远程数据库，快速开始开发
+- **数据一致性**：团队共享同一数据库，数据保持一致
+- **配置简单**：无需配置本地数据库
+
+#### ⚠️ 注意事项
+
+1. **网络连接要求**
+   - 确保网络可以访问远程数据库服务器（`42.193.243.96:13306`）
+   - 如果网络不稳定，可能影响开发体验
+   - 建议在稳定的网络环境下使用
+
+2. **启动时必须指定dev环境**
+   - 后端启动时必须添加参数：`--spring.profiles.active=dev`
+   - 否则不会使用 `application-dev.yml` 中的远程数据库配置
+   - 验证方法：查看启动日志，应该看到：
+     ```
+     The following profiles are active: dev
+     ```
+
+3. **数据库连接验证**
+   - 启动后查看日志，确认数据库连接成功
+   - 如果看到数据库连接错误，检查：
+     - 网络是否能访问 `42.193.243.96:13306`
+     - 数据库用户名密码是否正确
+     - 防火墙是否阻止连接
+
+4. **数据安全**
+   - 远程数据库是共享的，注意不要误删重要数据
+   - 开发测试时注意数据隔离
+
+5. **性能考虑**
+   - 远程数据库可能存在网络延迟
+   - 如果性能要求高，建议使用本地数据库
+
+### 切换到本地数据库（可选）
+
+如果需要使用本地数据库：
+
+#### 步骤1：安装MySQL
+- 下载并安装 MySQL 8.0+
+- 启动MySQL服务
+
+#### 步骤2：创建数据库并导入数据
+```sql
+CREATE DATABASE bladex CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+```
+
+```bash
+mysql -u root -p bladex < bladex.sql
+```
+
+#### 步骤3：修改配置文件
+编辑 `Bei-Xiang/src/main/resources/application-dev.yml`：
+
+```yaml
+spring:
+  datasource:
+    # 注释掉远程数据库配置
+    # url: jdbc:mysql://42.193.243.96:13306/bladex?...
+    
+    # 启用本地数据库配置
+    url: jdbc:mysql://localhost:3306/bladex?useSSL=false&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&serverTimezone=GMT%2B8&nullCatalogMeansCurrent=true&allowPublicKeyRetrieval=true&lowerCaseTableNames=1
+    username: root
+    password: 你的MySQL密码
+```
+
+#### 步骤4：修改Redis配置（可选）
+如果本地没有Redis，修改为本地配置：
+```yaml
+spring:
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    password: # 如果有密码则填写
+```
+
+---
+
+## 四、运行与调试
+
+### 后端启动
+
+1. **准备环境**
+   - JDK 11+
+   - Maven（或IDE内置构建）
+
+2. **启动方式**
+   - **方式A（IDE推荐）**：运行 `org.springblade.Application.main`，配置运行参数 `--spring.profiles.active=dev`
+   - **方式B（命令行）**：
+     ```bash
+     cd Bei-Xiang
+     mvn spring-boot:run -Dspring-boot.run.profiles=dev
+     ```
+
+3. **验证启动**
+   - 查看控制台日志，确认看到 "Started Application"
+   - 访问 `http://localhost:9999/doc.html` 查看API文档
+   - 访问 `http://localhost:9999/druid/` 查看数据源监控
+
+### 前端启动
+
+1. **使用DevEco Studio**
+   - 打开 `SalesNewMaster` 项目
+   - 确认 `EntryAbility.ts` 中的BASE_URL配置正确
+   - 选择设备（模拟器/真机）运行
+
+2. **验证连接**
+   - 查看应用控制台日志，应该看到：
+     ```
+     已设置默认后端地址（Android模拟器）: http://10.0.2.2:9999
+     [HttpUtils] 后端服务器: http://10.0.2.2:9999
+     ```
+   - 尝试登录，确认可以正常连接后端
+
+---
+
+## 五、常见问题（FAQ）
+
+### 后端相关问题
+
+**Q: 后端启动失败，提示数据库连接失败？**
+- 检查网络是否能访问远程数据库服务器
+- 确认启动时使用了 `--spring.profiles.active=dev` 参数
+- 查看完整错误日志，确认具体错误信息
+
+**Q: 启动时提示"命令行过长"错误？**
+- 在IDE运行配置中，找到"缩短命令行(L)"选项
+- 选择 `@argfile (Java 9+)`
+- 保存并重新运行
+
+**Q: 如何确认使用的是远程数据库？**
+- 查看启动日志中的数据库连接信息，应该看到：
+  ```
+  jdbc:mysql://42.193.243.96:13306/bladex
+  ```
+
+### 前端相关问题
+
+**Q: 前端无法连接后端（"Couldn't connect to server"）？**
+- 确认后端服务已启动（查看后端控制台）
+- 检查前端BASE_URL配置是否正确
+- 根据设备类型使用正确的地址：
+  - Android模拟器：`http://10.0.2.2:9999`
+  - 真机调试：使用电脑IP地址
+  - 本地浏览器：`http://localhost:9999`
+
+**Q: 如何查看前端实际连接的服务器地址？**
+- 查看应用控制台日志，每次请求都会输出：
+  ```
+  [HttpUtils] 后端服务器: http://...
+  [HttpUtils] 完整请求地址: http://.../...
+  ```
+
+**Q: 真机调试无法连接localhost？**
+- 使用电脑的局域网IP地址，例如 `http://192.168.1.100:9999`
+- 获取IP地址：Windows运行 `ipconfig`，找到 "IPv4 地址"
+- 确保手机和电脑在同一WiFi网络
+
+### 配置相关问题
+
+**Q: 修改了本地后端代码没有效果？**
+- 确认前端BASE_URL指向本地后端，而不是远程服务器
+- 确认后端服务已重新启动
+- 查看前端日志确认实际连接的服务器地址
+
+**Q: 如何切换不同的后端服务器？**
+- 修改 `EntryAbility.ts` 中的BASE_URL配置
+- 重新运行前端应用
+- 查看日志确认配置生效
+
+---
+
+## 六、快速开始（TL;DR）
+
+### 完整启动流程
+
+1. **启动后端服务**
+   ```bash
+   cd Bei-Xiang
+   # 使用IDE：运行Application.java，添加参数 --spring.profiles.active=dev
+   # 或使用命令行：
+   mvn spring-boot:run -Dspring-boot.run.profiles=dev
+   ```
+   - 验证：访问 `http://localhost:9999/doc.html` 确认后端启动成功
+
+2. **配置前端连接**
+   - 打开 `SalesNewMaster/entry/src/main/ets/entryability/EntryAbility.ts`
+   - 根据设备类型配置BASE_URL：
+     - Android模拟器：`http://10.0.2.2:9999`（当前默认）
+     - 真机调试：`http://你的电脑IP:9999`
+     - 本地浏览器：`http://localhost:9999`
+
+3. **运行前端应用**
+   - 使用DevEco Studio运行 `SalesNewMaster`
+   - 查看日志确认连接地址正确
+   - 测试登录功能
+
+---
+
+## 七、模块深挖示例：`modules/beixiang`
+
 该模块为定制业务域，包含订单、商品、设备、统计、账户、图片处理、IoT 等能力。采用标准的三层结构与 MyBatis-Plus 数据访问模式。
 
-- 目录速览（局部）
-  - `controller/`: `BillController`, `ProductController`, `DeviceController`, `ProductStatisticsController`, `AccountController`, `ImageController`, `IotController` 等
-  - `service/`: `*Service` 接口（均继承 `IService<T>`）与其实现类（通常在 `service.impl/`）
-  - `mapper/`: `*Mapper.java`（继承 `BaseMapper<T>`）与同名 `*Mapper.xml`（自定义 SQL）
-  - `entity/`: 领域实体，如 `Bill`, `Product`, `Device`, `Account` 等
-  - `vo`/`dto`: 视图对象与传输对象
+### 目录速览
+- `controller/`: `BillController`, `ProductController`, `DeviceController`, `ProductStatisticsController`, `AccountController`, `ImageController`, `IotController` 等
+- `service/`: `*Service` 接口（均继承 `IService<T>`）与其实现类（通常在 `service.impl/`）
+- `mapper/`: `*Mapper.java`（继承 `BaseMapper<T>`）与同名 `*Mapper.xml`（自定义 SQL）
+- `entity/`: 领域实体，如 `Bill`, `Product`, `Device`, `Account` 等
+- `vo`/`dto`: 视图对象与传输对象
 
-- 典型调用链（以“订单分页查询”为例）
-  1) 请求：`GET /bill/page`
-  2) `BillController.page(...)` 接收参数、校验并调用 `BillService`
-  3) `BillService` 组织业务规则（如状态过滤、权限/租户过滤）
-  4) `BillMapper` 调用（MP 分页 + 可选 XML 自定义查询）查询数据库
-  5) 结果封装为分页对象返回给前端
+### 典型调用链（以"订单分页查询"为例）
+1) 请求：`GET /bill/page`
+2) `BillController.page(...)` 接收参数、校验并调用 `BillService`
+3) `BillService` 组织业务规则（如状态过滤、权限/租户过滤）
+4) `BillMapper` 调用（MP 分页 + 可选 XML 自定义查询）查询数据库
+5) 结果封装为分页对象返回给前端
 
-- 常见接口一览（节选，具体见 `controller` 上的 Mapping）
-  - 订单：`/bill/page`, `/bill/detail`, `/bill/add`, `/bill/editStatus`, `/bill/handleBill`, `/bill/clear`
-  - 商品：`/product/submit`, `/product/detail`, `/product/page`, `/product/listName`, `/product/replenishment`, `/product/replenishWarn`
-  - 设备：`/device/submit`, `/device/page`, `/device/list`, `/device/deviceWarn`
-  - 统计：`/statistics/inventory`, `/statistics/numberCount`, `/statistics/saleTrend`, `/statistics/purchaseBehavior`, `/statistics/saleCount`, `/statistics/SaleRank`
-  - 账户：`/account/add`, `/account/log`, `/account/getBalance`
-  - 图片：`/images/upload`, `/images/recognizeImage`, `/images/download`, `/images/comparison`, `/images/armRecognition`
-  - IoT：`/iot_report`, `/iot_control`, `/iot_devices`, `/iot_deviceStatus`, `/login`
+### 常见接口一览
+- **订单**：`/bill/page`, `/bill/detail`, `/bill/add`, `/bill/editStatus`, `/bill/handleBill`, `/bill/clear`
+- **商品**：`/product/submit`, `/product/detail`, `/product/page`, `/product/listName`, `/product/replenishment`, `/product/replenishWarn`
+- **设备**：`/device/submit`, `/device/page`, `/device/list`, `/device/deviceWarn`
+- **统计**：`/statistics/inventory`, `/statistics/numberCount`, `/statistics/saleTrend`, `/statistics/purchaseBehavior`, `/statistics/saleCount`, `/statistics/SaleRank`
+- **账户**：`/account/add`, `/account/log`, `/account/getBalance`
+- **图片**：`/images/upload`, `/images/recognizeImage`, `/images/download`, `/images/comparison`, `/images/armRecognition`
+- **IoT**：`/iot_report`, `/iot_control`, `/iot_devices`, `/iot_deviceStatus`, `/login`
 
-- 数据访问
-  - 基础增删改查：`BaseMapper<T>` + `IService<T>`（MyBatis-Plus）
-  - 复杂查询：对应的 `*Mapper.xml` 中定义 `<select>/<insert>/<update>/<delete>` 语句
-  - 映射路径：`resources` 中通过 `mybatis-plus.mapper-locations` 已扫描 `org/springblade/**/mapper/*Mapper.xml`
+---
 
-- 业务扩展点
-  - 可在 `service` 层接入 LiteFlow/Flowable 编排复杂流程（如订单状态机、补货流程、告警处理等）
-  - 利用 `common/cache` 做热点数据缓存；结合 `blade.secure` 做接口鉴权与签名
-  - IoT 与图片处理接口可接入对象存储（`oss.*` 配置）与 AI 能力
+## 八、前后端映射速查
 
-- Debug 建议
-  - 从 `controller` 入手，定位某个接口方法，跟进 `service` 与 `mapper`
-  - 若 SQL 来自 XML，则在同名 `*Mapper.xml` 中搜索对应 `id`
-  - 使用 `doc.html` 快速调试请求；必要时打开 SQL 日志与 Druid 监控
-
-### 前后端映射速查
 - **登录/鉴权**
   - 后端：`modules/auth`、`modules/beixiang` 中与登录相关的 `Controller`
   - 前端：`entry/src/main/ets/pages/login/*`，API 封装见 `entry/src/main/ets/api/HomeAPI.ets`
@@ -149,27 +435,8 @@ HarmonyOS（ArkTS/ETS）项目，结构清晰，核心是通过封装的 HTTP �
 - **通用组件与状态**
   - 前端：`entry/src/main/ets/pages/common/components/*`
 - **HTTP 与配置**
-  - 前端：`entry/src/main/ets/utils/HttpUtils.ets`（请求封装），`entry/src/main/ets/utils/config.data.ets`（后端基地址）
-
-### 快速开始（TL;DR）
-1. 启动后端（JDK 11 + Maven）：
-   ```bash
-   cd Bei-Xiang
-   mvn -U clean package -DskipTests
-   java -jar target/bei-xiang.jar
-   ```
-   验证：`http://localhost:9999/doc.html` 与 `http://localhost:9999/druid/` 可访问。
-2. 运行前端（DevEco Studio）：
-   - 打开 `SalesNewMaster`
-   - 确认 `entry/src/main/ets/utils/config.data.ets` 指向 `http://localhost:9999`
-   - 选择设备（模拟器/真机）运行
-
-### 常用排错清单
-- **接口 404/跨域**：确认后端端口、网段可达、跨域策略；`config.data.ets` 地址一致。
-- **依赖/启动失败**：刷新 Maven，检查 JDK 版本与 `pom.xml` 依赖是否完整。
-- **SQL 未执行/表不存在**：导入 `bladex.sql` 与模块所需 SQL；检查数据源配置。
-- **流程相关异常**：检查 `resources/liteflow/*.el.xml` 与 `resources/processes/*.bpmn20.xml` 是否存在/加载；开关是否启用。
-- **前端网络失败**：在 `HttpUtils.ets` 打印实际请求地址与响应；核验 `oh_modules/@ohos/axios` 是否正常。
+  - 前端：`entry/src/main/ets/utils/HttpUtils.ets`（请求封装），`entry/src/main/ets/entryability/EntryAbility.ts`（后端基地址配置）
 
 ---
-如需我将具体模块（如订单/商品/设备等）的“表结构关系图 + 前后端调用链”进一步扩展进本文档，请告知模块名称。
+
+如需进一步按"具体业务模块"输出更细的调用图与表结构关系，请指出模块名称，我会继续补充到本文档中。

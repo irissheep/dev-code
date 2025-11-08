@@ -183,7 +183,18 @@ public class BillController {
 	@ApiOperation(value = "处置账单", notes = "")
 	@PostMapping("handleBill")
 	public R handleBill(@RequestBody BillDTO dto) {
-		return R.status(billService.handleBill(dto));
+		try {
+			boolean result = billService.handleBill(dto);
+			if (result) {
+				return R.success("操作成功");
+			} else {
+				return R.fail("操作失败");
+			}
+		} catch (RuntimeException e) {
+			return R.fail(e.getMessage());
+		} catch (Exception e) {
+			return R.fail("系统错误: " + e.getMessage());
+		}
 	}
 
 	@ApiOperation(value = "清空", notes = "")
