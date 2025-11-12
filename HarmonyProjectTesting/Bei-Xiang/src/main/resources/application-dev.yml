@@ -16,12 +16,12 @@ spring:
     # MySql 119.29.77.218
 #    42.193.243.96:13306/bladex  localhost:3306/hos
 
-    url: jdbc:mysql://42.193.243.96:13306/bladex?useSSL=false&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&serverTimezone=GMT%2B8&nullCatalogMeansCurrent=true&allowPublicKeyRetrieval=true&lowerCaseTableNames=1
-    username: proj4user
-    password: fWQ#WcxmpX
-#    url: jdbc:mysql://localhost:3306/hos?useSSL=false&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&serverTimezone=GMT%2B8&nullCatalogMeansCurrent=true&allowPublicKeyRetrieval=true&lowerCaseTableNames=1
-#    username: root
-#    password: 123456
+    url: jdbc:mysql://localhost:3306/bladex?useSSL=false&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&serverTimezone=GMT%2B8&nullCatalogMeansCurrent=true&allowPublicKeyRetrieval=true&lowerCaseTableNames=1
+    username: root
+    password: root
+#    url: jdbc:mysql://42.193.243.96:13306/bladex?useSSL=false&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&serverTimezone=GMT%2B8&nullCatalogMeansCurrent=true&allowPublicKeyRetrieval=true&lowerCaseTableNames=1
+#    username: proj4user
+#    password: fWQ#WcxmpX
 
 #第三方登陆
 social:
