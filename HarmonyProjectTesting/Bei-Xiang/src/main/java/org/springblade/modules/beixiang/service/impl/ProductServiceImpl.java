@@ -23,6 +23,8 @@ import org.springblade.modules.beixiang.dto.ProductDTO;
 import org.springblade.modules.beixiang.entity.Device;
 import org.springblade.modules.beixiang.entity.Product;
 import org.springblade.modules.beixiang.enums.CellEnum;
+import org.springblade.modules.beixiang.dto.ProductReplenishDTO;
+import org.springblade.modules.beixiang.dto.ProductReplenishItemDTO;
 import org.springblade.modules.beixiang.service.ProductService;
 import org.springblade.modules.beixiang.mapper.ProductMapper;
 import org.springblade.modules.beixiang.vo.InventoryVO;
@@ -147,37 +149,118 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product>
 	}
 	//status 1 开始补货, 2 完成补货
 	@Override
-	public boolean replenishment(String status) {
-		bladeRedis.set("status",status);
+	@Transactional(rollbackFor = Exception.class)
+	public boolean replenishment(ProductReplenishDTO dto) {
+		if (dto == null || !StringUtils.hasLength(dto.getStatus())) {
+			throw new ServiceException("补货状态不能为空");
+		}
+		String status = dto.getStatus();
+		System.out.println("========== 补货请求开始 ==========");
+		System.out.println("补货状态: " + status);
+		System.out.println("接收到的DTO: " + JSON.toJSONString(dto));
+		System.out.println("items数量: " + (dto.getItems() != null ? dto.getItems().size() : 0));
+		System.out.println("productList数量: " + (dto.getProductList() != null ? dto.getProductList().size() : 0));
+		
+		bladeRedis.set("status", status);
 
 		Map<String, String> header = new HashMap<>();
 		header.put("client_type", "web");
 		header.put("Content-Type", "application/json");
 		header.put("token", iotController.getToken());
-		//String body = JSON.toJSONString(param);
 
 		String deviceId = dictBizService.getValue(DictConstant.DEVICE_ID, "shelf1");
-		String url = ServiceConstant.BASE_URL + "/api/mqtt/async/"+deviceId+"/commands";
+		String url = ServiceConstant.BASE_URL + "/api/mqtt/async/" + deviceId + "/commands";
+		boolean iotSuccess = false;
 		try {
-			Response response = null;
-			if(status.equals(ServiceConstant.STATUS_ON)){
+			Response response;
+			if (ServiceConstant.STATUS_ON.equals(status)) {
 				response = OkHttpUtil.postJson(url, ServiceConstant.COMMAND_ON, header);
-			}else{
+			} else {
 				response = OkHttpUtil.postJson(url, ServiceConstant.COMMAND_OFF, header);
 			}
 
 			String s = response.body().string();
 			JSONObject object = JSON.parseObject(s);
 			int code = object.getInteger("code");
-			if (code ==50014) {
+			if (code == 50014) {
 				iotController.login("test035", "12345035");
 			}
-			if(code!= 2000&&code !=50014){
-				return false;
+			if (code == 2000 || code == 50014) {
+				iotSuccess = true;
+			} else {
+				System.out.println("IoT指令发送失败，code: " + code + "，但继续处理库存更新");
 			}
-		}catch (Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
+			System.out.println("IoT指令发送异常: " + e.getMessage() + "，但继续处理库存更新");
+			// 对于完成补货，即使IoT指令失败也要更新库存
+			if (ServiceConstant.STATUS_ON.equals(status)) {
+				throw new ServiceException("补货指令发送失败");
+			}
 		}
+
+		if (ServiceConstant.STATUS_OFF.equals(status)) {
+			// 兼容两种前端提交格式：items 或 productList
+			List<ProductReplenishItemDTO> items = dto.getItems();
+			System.out.println("处理完成补货，原始items: " + (items != null ? items.size() : 0));
+			
+			if (CollectionUtils.isEmpty(items) && dto.getProductList() != null && !dto.getProductList().isEmpty()) {
+				System.out.println("items为空，使用productList转换");
+				items = dto.getProductList().stream().map(sp -> {
+					ProductReplenishItemDTO it = new ProductReplenishItemDTO();
+					Long productId = sp.getId();
+					if (productId == null) {
+						System.out.println("警告: productList中的id为null，跳过该项");
+						return null;
+					}
+					it.setProductId(productId);
+					it.setQuantity(sp.getNumber());
+					System.out.println("转换商品: productId=" + productId + " (类型: " + productId.getClass().getName() + "), quantity=" + sp.getNumber());
+					return it;
+				}).filter(it -> it != null).collect(Collectors.toList());
+			}
+
+			if (!CollectionUtils.isEmpty(items)) {
+				System.out.println("开始更新库存，共" + items.size() + "个商品");
+				for (ProductReplenishItemDTO item : items) {
+					if (item == null || item.getProductId() == null) {
+						System.out.println("跳过无效商品项: " + item);
+						continue;
+					}
+					Long productId = item.getProductId();
+					System.out.println("处理商品ID: " + productId + " (类型: " + productId.getClass().getName() + ")");
+					Integer qty = item.getQuantity();
+					if (qty == null || qty <= 0) {
+						System.out.println("跳过数量无效的商品: productId=" + productId + ", quantity=" + qty);
+						continue;
+					}
+					Product product = getById(productId);
+					if (product == null) {
+						System.out.println("商品不存在，ID：" + productId + "，尝试查询数据库...");
+						// 尝试直接查询数据库，看看是否存在
+						Product checkProduct = baseMapper.selectById(productId);
+						if (checkProduct == null) {
+							throw new ServiceException("商品不存在，ID：" + productId);
+						}
+						product = checkProduct;
+					}
+					int origin = product.getNumber() == null ? 0 : product.getNumber();
+					int newNumber = origin + qty;
+					System.out.println("更新商品库存: productId=" + item.getProductId() + 
+						", 原库存=" + origin + ", 补货数量=" + qty + ", 新库存=" + newNumber);
+					product.setNumber(newNumber);
+					boolean success = updateById(product);
+					if (!success) {
+						throw new ServiceException("更新库存失败，商品ID：" + item.getProductId());
+					}
+					System.out.println("商品库存更新成功: productId=" + item.getProductId());
+				}
+				System.out.println("所有商品库存更新完成");
+			} else {
+				System.out.println("警告: 没有需要更新的商品数据");
+			}
+		}
+		System.out.println("========== 补货请求结束 ==========");
 		return true;
 	}
 	//销量排行 condition 降序 desc, 升序 asc
