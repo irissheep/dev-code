@@ -25,6 +25,10 @@ spring:
     username: proj4user
     password: fWQ#WcxmpX
 
+#    url: jdbc:mysql://42.193.243.96:13306/bladex?useSSL=false&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&serverTimezone=GMT%2B8&nullCatalogMeansCurrent=true&allowPublicKeyRetrieval=true&lowerCaseTableNames=1
+#    username: proj4user
+#    password: fWQ#WcxmpX
+
 
 #第三方登陆
 social:

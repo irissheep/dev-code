@@ -166,22 +166,22 @@ Started Application in X.XXX seconds
 
 ---
 
-## 三、远程数据库使用的注意事项
+## 三、本地数据库配置与注意事项
 
-### 当前数据库配置
+### 当前数据库配置（dev）
 
 **配置文件**：`Bei-Xiang/src/main/resources/application-dev.yml`
 
-**远程数据库配置**（当前已启用）：
+**本地数据库配置**（当前已启用）：
 ```yaml
 spring:
   datasource:
-    url: jdbc:mysql://42.193.243.96:13306/bladex?useSSL=false&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&serverTimezone=GMT%2B8&nullCatalogMeansCurrent=true&allowPublicKeyRetrieval=true&lowerCaseTableNames=1
-    username: proj4user
-    password: fWQ#WcxmpX
+    url: jdbc:mysql://localhost:3306/bladex?useSSL=false&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&serverTimezone=GMT%2B8&nullCatalogMeansCurrent=true&allowPublicKeyRetrieval=true&lowerCaseTableNames=1
+    username: root
+    password: root
 ```
 
-**Redis配置**：
+**Redis配置**（仍指向远程，如需本地部署请自行调整）：
 ```yaml
 spring:
   redis:
@@ -190,84 +190,48 @@ spring:
     password: tb@730*#$
 ```
 
-### 使用远程数据库的注意事项
+### 使用本地数据库的步骤
 
-#### ✅ 优点
-- **无需本地安装数据库**：直接使用远程数据库，快速开始开发
-- **数据一致性**：团队共享同一数据库，数据保持一致
-- **配置简单**：无需配置本地数据库
+1. **安装并启动 MySQL**
+   - 推荐 MySQL 8.0+
+   - 确保监听 3306 端口
+2. **初始化数据库**
+   ```bash
+   mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS bladex CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
+   mysql -uroot -proot bladex < bladex.sql
+   ```
+3. **启动后端（dev 环境）**
+   - 添加参数 `--spring.profiles.active=dev`
+   - 查看日志确认 `jdbc:mysql://localhost:3306/bladex`
+4. **可选：本地部署 Redis**
+   - 将 `spring.redis.host` 改为 `127.0.0.1`
+   - 在本地启动 Redis 或根据需要关闭相关功能
 
-#### ⚠️ 注意事项
+### 本地数据库的优缺点
 
-1. **网络连接要求**
-   - 确保网络可以访问远程数据库服务器（`42.193.243.96:13306`）
-   - 如果网络不稳定，可能影响开发体验
-   - 建议在稳定的网络环境下使用
+**✅ 优点**
+- 完全离线开发，不依赖外部网络
+- 数据可随意清空、修改，降低误操作风险
+- 性能稳定，不受网络波动影响
 
-2. **启动时必须指定dev环境**
-   - 后端启动时必须添加参数：`--spring.profiles.active=dev`
-   - 否则不会使用 `application-dev.yml` 中的远程数据库配置
-   - 验证方法：查看启动日志，应该看到：
-     ```
-     The following profiles are active: dev
-     ```
+**⚠️ 注意事项**
+- 需要提前导入 `bladex.sql`
+- 本地 MySQL 会占用一定系统资源
+- 与团队协作时需自行同步数据
 
-3. **数据库连接验证**
-   - 启动后查看日志，确认数据库连接成功
-   - 如果看到数据库连接错误，检查：
-     - 网络是否能访问 `42.193.243.96:13306`
-     - 数据库用户名密码是否正确
-     - 防火墙是否阻止连接
+### 扩展：切换回远程数据库
 
-4. **数据安全**
-   - 远程数据库是共享的，注意不要误删重要数据
-   - 开发测试时注意数据隔离
-
-5. **性能考虑**
-   - 远程数据库可能存在网络延迟
-   - 如果性能要求高，建议使用本地数据库
-
-### 切换到本地数据库（可选）
-
-如果需要使用本地数据库：
-
-#### 步骤1：安装MySQL
-- 下载并安装 MySQL 8.0+
-- 启动MySQL服务
-
-#### 步骤2：创建数据库并导入数据
-```sql
-CREATE DATABASE bladex CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-```
-
-```bash
-mysql -u root -p bladex < bladex.sql
-```
-
-#### 步骤3：修改配置文件
-编辑 `Bei-Xiang/src/main/resources/application-dev.yml`：
+若暂时想使用远程托管的数据库，可将 `application-dev.yml` 调整为：
 
 ```yaml
 spring:
   datasource:
-    # 注释掉远程数据库配置
-    # url: jdbc:mysql://42.193.243.96:13306/bladex?...
-    
-    # 启用本地数据库配置
-    url: jdbc:mysql://localhost:3306/bladex?useSSL=false&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&serverTimezone=GMT%2B8&nullCatalogMeansCurrent=true&allowPublicKeyRetrieval=true&lowerCaseTableNames=1
-    username: root
-    password: 你的MySQL密码
+    url: jdbc:mysql://42.193.243.96:13306/bladex?useSSL=false&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&serverTimezone=GMT%2B8&nullCatalogMeansCurrent=true&allowPublicKeyRetrieval=true&lowerCaseTableNames=1
+    username: proj4user
+    password: fWQ#WcxmpX
 ```
 
-#### 步骤4：修改Redis配置（可选）
-如果本地没有Redis，修改为本地配置：
-```yaml
-spring:
-  redis:
-    host: 127.0.0.1
-    port: 6379
-    password: # 如果有密码则填写
-```
+切换后请确保网络能访问 `42.193.243.96:13306`，并同样在启动时指定 `--spring.profiles.active=dev`。
 
 ---
 

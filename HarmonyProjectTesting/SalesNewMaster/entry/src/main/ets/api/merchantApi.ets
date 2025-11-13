@@ -27,9 +27,14 @@ class MerchantAPI {
     return HttpUtils.getInstance().get('/product/listName',{});
   }
 
-  // 商品补货
-  supplyGoodsApi(params: object): Promise<responseType> {
+  // 商品补货-开始
+  supplyGoodsStartApi(params: object): Promise<responseType> {
     return HttpUtils.getInstance().get('/product/replenishment', params);
+  }
+
+  // 商品补货-提交
+  supplyGoodsFinishApi(data: object): Promise<responseType> {
+    return HttpUtils.getInstance().post('/product/replenishment', data);
   }
 
   // 商品详情

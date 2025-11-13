@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.springblade.core.mp.support.Query;
 import org.springblade.modules.beixiang.dto.ProductAddOrUpdateDTO;
 import org.springblade.modules.beixiang.dto.ProductDTO;
+import org.springblade.modules.beixiang.dto.ProductReplenishDTO;
 import org.springblade.modules.beixiang.entity.Product;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.springblade.modules.beixiang.vo.InventoryVO;
@@ -33,7 +34,7 @@ public interface ProductService extends IService<Product> {
 
 	List<InventoryVO> inventory();
 
-	boolean replenishment(String status);
+	boolean replenishment(ProductReplenishDTO dto);
 
 	List<SaleRankVO> SaleRank(String condition);
 

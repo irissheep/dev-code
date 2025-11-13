@@ -8,6 +8,7 @@ import org.springblade.core.mp.support.Query;
 import org.springblade.core.tool.api.R;
 import org.springblade.modules.beixiang.dto.ProductAddOrUpdateDTO;
 import org.springblade.modules.beixiang.dto.ProductDTO;
+import org.springblade.modules.beixiang.dto.ProductReplenishDTO;
 import org.springblade.modules.beixiang.service.ProductService;
 import org.springblade.modules.beixiang.vo.ProductVO;
 import org.springframework.web.bind.annotation.*;
@@ -49,8 +50,16 @@ public class ProductController {
 
 	@ApiOperation(value = "商品补货", notes = "status 1 开始补货 2 完成补货")
 	@GetMapping("replenishment")
-	public R replenishment(String status) {
-		return R.data(productService.replenishment(status));
+	public R replenishment(@RequestParam String status) {
+		ProductReplenishDTO dto = new ProductReplenishDTO();
+		dto.setStatus(status);
+		return R.data(productService.replenishment(dto));
+	}
+
+	@ApiOperation(value = "商品补货提交", notes = "提交补货明细，status=2 完成补货")
+	@PostMapping("replenishment")
+	public R replenishment(@RequestBody ProductReplenishDTO dto) {
+		return R.data(productService.replenishment(dto));
 	}
 
 	@ApiOperation(value = "补货预警", notes = "")

@@ -279,6 +279,7 @@ export interface deviceDetailItemType {
   deviceId?: string //所在货架
   shelf?: string //商品货架
   price?: number
+  number?: number
   thresholdValue?: string
   weight?: string
   pictureUrl?: string
