@@ -85,7 +85,7 @@ struct abnormalHandling {
   @State originUserList: userListType[] = []
   @State detailInfo: billDetailInfoType = {
     id: '',
-    status: '', //1 已完成，2 异常退回，3 异常取走"
+    status: '', //1 已完成，2 异常退回，3 异常取走，4 已忽略
     createTime: '2012-12-12 12:23:12',
     billNo: '',
     amount: 0,
@@ -101,6 +101,7 @@ struct abnormalHandling {
       confirm: (item: userListType) => {
         this.selectUserId = item.id
         this.selectUser = item.account
+        console.log('[用户选择] 选择的用户ID:', item.id, '类型:', typeof item.id, '账户:', item.account)
       },
       cancel: () => {
         this.selectUserId = ''
@@ -156,8 +157,12 @@ struct abnormalHandling {
           Column() {
             Flex({ justifyContent: FlexAlign.SpaceBetween }) {
               Text('订单号：' + this.detailInfo.billNo).fontSize(14)
-              Text(this.detailInfo.status == '1' ? '已完成' : (this.detailInfo.status == '2' ? '异常退回' : '异常取走'))
-                .fontColor(this.detailInfo.status == '1' ? Color.Black : Color.Red).fontSize(14)
+              Text(this.detailInfo.status == '1' ? '已完成' : 
+                   (this.detailInfo.status == '2' ? '异常退回' : 
+                    (this.detailInfo.status == '3' ? '异常取走' : 
+                     (this.detailInfo.status == '4' ? '已忽略' : '未知'))))
+                .fontColor(this.detailInfo.status == '1' ? Color.Black : 
+                          (this.detailInfo.status == '4' ? Color.Gray : Color.Red)).fontSize(14)
             }.margin({ bottom: 10 })
 
             Flex() {
@@ -313,6 +318,21 @@ struct abnormalHandling {
       this.originUserList = res.data
       this.userList = res.data
       console.log('用户列表res', JSON.stringify(res.data))
+      
+      // 检测用户ID精度问题
+      res.data.forEach((user, index) => {
+        if (user.id) {
+          const originalId = user.id;
+          if (typeof originalId === 'string' && originalId.length >= 15) {
+            const numId = Number(originalId);
+            const convertedBack = numId.toString();
+            if (convertedBack !== originalId) {
+              console.error(`[精度丢失检测] 用户索引 ${index}: ID "${originalId}" 转换为number后变为 "${convertedBack}"`);
+              console.error(`[精度丢失检测] 建议: 保持ID为字符串格式`);
+            }
+          }
+        }
+      });
     })
   }
 
@@ -327,10 +347,30 @@ struct abnormalHandling {
       status?: string
     }
 
-    // 获取订单的userId，用于忽略操作（忽略时也需要传递userId，但后端不会使用）
-    const billUserId: string | number = this.detailInfo?.userId ? 
-      (typeof this.detailInfo.userId === 'number' ? this.detailInfo.userId : 
-       (typeof this.detailInfo.userId === 'string' ? (isNaN(Number(this.detailInfo.userId)) ? '' : Number(this.detailInfo.userId)) : '')) : ''
+    // 安全转换ID，避免精度丢失
+    // 对于大整数ID（>=15位），保持字符串格式，让后端Jackson自动转换为Long
+    const safeConvertId = (id: string | number | undefined): string | number | undefined => {
+      if (id === null || id === undefined) return undefined;
+      if (typeof id === 'number') return id;
+      if (typeof id === 'string') {
+        // 如果ID长度>=15位，可能超出JavaScript安全整数范围，保持字符串
+        if (id.length >= 15) {
+          console.log(`[精度保护] ID "${id}" 长度${id.length}位，保持字符串格式`);
+          return id;
+        }
+        // 小ID可以安全转换为number
+        const num = Number(id);
+        if (!isNaN(num)) {
+          return num;
+        }
+        return id;
+      }
+      return id;
+    };
+
+    // 获取订单的userId，用于忽略操作
+    const billUserId: string | number | undefined = this.detailInfo?.userId ? 
+      safeConvertId(this.detailInfo.userId) : undefined;
     
     // 获取金额，优先使用amount字段，否则从totalAmount解析
     const amountNum: number = this.detailInfo?.amount ?? parseFloat(this.detailInfo?.totalAmount || '0')
@@ -355,20 +395,24 @@ struct abnormalHandling {
       return
     }
 
-    // 转换selectUserId为数字类型（如果可能）
-    let finalUserId: string | number = ''
+    // 安全转换用户ID，避免精度丢失
+    let finalUserId: string | number | undefined = undefined;
     if (this.radioSelect == '1') {
       // 处理操作：使用选择的客户ID
-      finalUserId = isNaN(Number(this.selectUserId)) ? this.selectUserId : Number(this.selectUserId)
+      finalUserId = safeConvertId(this.selectUserId);
+      if (!finalUserId) {
+        promptAction.showToast({ message: '用户ID无效' })
+        return
+      }
     } else {
       // 忽略操作：使用订单的userId（如果存在）
-      finalUserId = billUserId
+      finalUserId = billUserId;
     }
 
     // 构建请求参数
     const params: mm = {
-      id: isNaN(Number(this.detailInfo.id)) ? this.detailInfo.id : Number(this.detailInfo.id),
-      userId: finalUserId || undefined, // 如果为空，传递undefined而不是空字符串
+      id: safeConvertId(this.detailInfo.id),
+      userId: finalUserId, // 使用安全转换后的ID
       handle: this.radioSelect, //处理类型 0 忽略 1 处理
       billNo: this.detailInfo.billNo,
       amount: amountNum, //金额

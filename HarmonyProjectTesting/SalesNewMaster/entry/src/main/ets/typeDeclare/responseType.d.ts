@@ -309,7 +309,7 @@ interface goodsType {
 export  interface billDetailInfoType {
   id?: string
   billNo?: string
-  status?: string //1 已完成，2 异常退回，3 异常取走"
+  status?: string //1 已完成，2 异常退回，3 异常取走，4 已忽略
   productList?: goodsType[]
   createTime?: string
   goodsImg?: string

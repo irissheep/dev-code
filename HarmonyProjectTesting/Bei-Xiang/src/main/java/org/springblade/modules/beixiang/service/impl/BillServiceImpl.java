@@ -120,8 +120,14 @@ public class BillServiceImpl extends ServiceImpl<BillMapper, Bill>
 		Map<Long, ProductResVO> productMap = productResVOs.stream().collect(Collectors.toMap(ProductResVO::getId, Function.identity()));
 		Account account = Db.lambdaQuery(Account.class).eq(Account::getUserId, userId).one();
 		Set<Long> userIds = records.stream().filter(x -> x.getUserId() != null).map(BillVO::getUserId).collect(Collectors.toSet());
-		List<User> users = userService.list(new LambdaQueryWrapper<User>().in(User::getId, userIds).eq(User::getIsDeleted, 0));
-		Map<Long, String> userMap = users.stream().collect(Collectors.toMap(User::getId, User::getAccount));
+		// 修复：如果userIds为空，跳过用户查询，避免生成 id IN () 的SQL错误
+		final Map<Long, String> userMap;
+		if (!CollectionUtils.isEmpty(userIds)) {
+			List<User> users = userService.list(new LambdaQueryWrapper<User>().in(User::getId, userIds).eq(User::getIsDeleted, 0));
+			userMap = users.stream().collect(Collectors.toMap(User::getId, User::getAccount));
+		} else {
+			userMap = new HashMap<>();
+		}
 		//Map<Long, Long> billMap = records.stream().collect(Collectors.toMap(BillVO::getId, BillVO::getUserId));
 		records.stream().forEach(billVO -> {
 			List<ProductResVO> list = new ArrayList<>();
@@ -227,7 +233,8 @@ public class BillServiceImpl extends ServiceImpl<BillMapper, Bill>
 			}
 		} else if ("0".equals(dto.getHandle())) {
 			// 忽略操作 - 只更新订单状态，不处理账户
-			// 可以在这里添加忽略后的状态更新逻辑，如果需要的话
+			// 设置状态为"已忽略"
+			bill.setStatus(BillStatusEnum.IGNORED.getCode());
 		}
 		return updateById(bill);
 	}

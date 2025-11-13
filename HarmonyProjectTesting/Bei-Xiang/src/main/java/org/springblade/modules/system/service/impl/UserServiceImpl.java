@@ -56,10 +56,14 @@ import org.springblade.modules.system.vo.UserInfoVO;
 import org.springblade.modules.system.vo.UserListVO;
 import org.springblade.modules.system.vo.UserVO;
 import org.springblade.modules.system.wrapper.UserWrapper;
+import org.springblade.modules.beixiang.entity.Account;
+import com.baomidou.mybatisplus.extension.toolkit.Db;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.springblade.common.constant.CommonConstant.DEFAULT_PARAM_PASSWORD;
 
@@ -539,11 +543,42 @@ public class UserServiceImpl extends BaseServiceImpl<UserMapper, User> implement
 
 	@Override
 	public List<UserListVO> getUserList(String account) {
+		// 查询用户，只返回有账户的用户（用于订单扣款/退款操作）
+		// 先查询所有符合条件的用户
 		List<User> users = list(Wrappers.<User>lambdaQuery()
 			.eq(User::getIsDeleted, 0)
-			.eq(User::getCategory,1)
-			.like(StringUtil.hasLength(account),User::getAccount,account));
-		List<UserListVO> userListVOS = BeanUtil.copyProperties(users, UserListVO.class);
+			.eq(User::getCategory, 1)
+			.like(StringUtil.hasLength(account), User::getAccount, account));
+		
+		if (CollectionUtils.isEmpty(users)) {
+			return new ArrayList<>();
+		}
+		
+		// 获取所有用户ID
+		List<Long> userIds = users.stream().map(User::getId).collect(Collectors.toList());
+		
+		// 如果userIds为空，直接返回空列表（虽然理论上不会发生，但为了安全）
+		if (CollectionUtils.isEmpty(userIds)) {
+			return new ArrayList<>();
+		}
+		
+		// 查询这些用户中有账户的用户ID
+		List<Account> accounts = Db.lambdaQuery(Account.class)
+			.in(Account::getUserId, userIds)
+			.eq(Account::getIsDeleted, 0)
+			.list();
+		
+		// 获取有账户的用户ID集合
+		Set<Long> userIdsWithAccount = accounts.stream()
+			.map(Account::getUserId)
+			.collect(Collectors.toSet());
+		
+		// 过滤出有账户的用户
+		List<User> validUsers = users.stream()
+			.filter(user -> userIdsWithAccount.contains(user.getId()))
+			.collect(Collectors.toList());
+		
+		List<UserListVO> userListVOS = BeanUtil.copyProperties(validUsers, UserListVO.class);
 		return userListVOS;
 	}
 

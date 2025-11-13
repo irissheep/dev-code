@@ -7,7 +7,8 @@ import lombok.Getter;
 public enum BillStatusEnum {
 	FINISH("1","已完成"),
 	ABNORMAL_FALLBACK("2","异常退回"),
-	ABNORMAL_FETCH("3","异常取走");
+	ABNORMAL_FETCH("3","异常取走"),
+	IGNORED("4","已忽略");
 
 	private String code;
 

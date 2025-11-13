@@ -11,7 +11,7 @@ import java.util.List;
 @Data
 @ApiModel
 public class BillVO {
-	@ApiModelProperty("订单状态 1 已完成, 2 异常退回, 3 异常取走")
+	@ApiModelProperty("订单状态 1 已完成, 2 异常退回, 3 异常取走, 4 已忽略")
 	private String status;
 
 	@ApiModelProperty("商品货架")

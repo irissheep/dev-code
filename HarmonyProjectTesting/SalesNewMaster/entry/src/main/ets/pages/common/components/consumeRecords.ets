@@ -137,13 +137,15 @@ export struct consumeRecords {
                           .align(Alignment.Start)
                           .alignItems(HorizontalAlign.Start)
 
-                          if (this.userType == '2') { ////1 已完成，2 异常退回，3 异常取走"
+                          if (this.userType == '2') { ////1 已完成，2 异常退回，3 异常取走，4 已忽略
                             if (item.status == '1') {
                               Text("已完成").fontSize(14)
                             } else if (item.status == '2') {
                               Text("异常退回").fontSize(14)
                             } else if (item.status == '3') {
                               Text("异常取走").fontSize(14)
+                            } else if (item.status == '4') {
+                              Text("已忽略").fontSize(14)
                             } else {
                               Text("未知")
                             }
@@ -155,7 +157,7 @@ export struct consumeRecords {
                           if (this.userType == '1') {
                             // Text('余额' + item.balance + '元').fontColor(Color.Gray).fontSize(10)
                             Text('')
-                          } else if (this.userType == '2' && item.status != '1') {
+                          } else if (this.userType == '2' && item.status != '1' && item.status != '4') {
                             Button('处置')
                               .fontSize(12)
                               .width(58)
