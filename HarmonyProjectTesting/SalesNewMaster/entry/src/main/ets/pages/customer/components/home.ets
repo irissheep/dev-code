@@ -75,7 +75,10 @@ export struct home {
             }
             ListItem() { // 加载更多布局
               loadStatusCom({ loadStatus: this.loadStatus, refresh: $refresh })
-            }.width(this.goodsList.length>0?'200%':'100%')
+            }
+            .width('100%')
+            .layoutWeight(2)
+            .align(Alignment.Center)
           }
           .width("100%")
           .height('100%')
